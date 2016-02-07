@@ -1,77 +1,134 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="10dp"
     android:background="@android:color/white">
 
-    <android.support.design.widget.TextInputLayout
-        android:id="@+id/til_name"
+    <RelativeLayout
+        android:id="@+id/rl_address_holder"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:hintTextAppearance="@style/TextLabel">
+        android:layout_height="150dp"
+        android:background="@color/colorPrimary">
 
-        <android.support.v7.widget.AppCompatEditText
-            android:id="@+id/txt_name"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/name_label"
-            android:inputType="text"
-            app:backgroundTint="@android:color/black"/>
+            android:padding="10dp"
+            android:layout_centerVertical="true">
 
-    </android.support.design.widget.TextInputLayout>
+            <TextView
+                android:id="@+id/txt_address_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/address_label"
+                android:textColor="@android:color/white"
+                android:textSize="18sp"/>
 
-    <android.support.design.widget.TextInputLayout
-        android:id="@+id/til_address"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/til_name"
-        android:layout_marginTop="10dp"
-        app:hintTextAppearance="@style/TextLabel">
+            <TextView
+                android:id="@+id/txt_address"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/no_address"
+                android:textColor="@android:color/white"
+                android:textSize="15sp"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:layout_below="@+id/txt_address_title"/>
+        </RelativeLayout>
 
-        <android.support.v7.widget.AppCompatEditText
-            android:id="@+id/txt_address"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/address_label"
-            android:inputType="text"
-            app:backgroundTint="@android:color/black"/>
-
-    </android.support.design.widget.TextInputLayout>
+    </RelativeLayout>
 
     <LinearLayout
-        android:id="@+id/ll_save"
+        android:id="@+id/ll_options"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_below="@+id/til_address"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="10dp">
+        android:layout_below="@+id/rl_address_holder"
+        android:baselineAligned="false">
 
-        <Button
-            android:id="@+id/btn_save"
+        <RelativeLayout
+            android:id="@+id/rl_save"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/save"
-            android:layout_marginRight="5dp"
-            android:layout_marginEnd="5dp"
-            android:textColor="@color/green"
-            style="?android:buttonBarButtonStyle"/>
+            android:padding="20dp"
+            android:background="?attr/selectableItemBackground">
 
-        <Button
-            android:id="@+id/btn_cancel"
+            <ImageView
+                android:id="@+id/iv_save"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_save_action"
+                android:layout_centerHorizontal="true"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/iv_save"
+                android:textColor="@color/blue"
+                android:text="@string/save"
+                android:layout_marginTop="10dp"
+                android:layout_centerHorizontal="true"/>
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/rl_share"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/cancel"
-            android:layout_marginLeft="5dp"
-            android:layout_marginStart="5dp"
-            android:textColor="@color/red"
-            style="?android:buttonBarButtonStyle"/>
+            android:padding="20dp"
+            android:background="?attr/selectableItemBackground">
+
+            <ImageView
+                android:id="@+id/iv_share"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_share_action"
+                android:layout_centerHorizontal="true"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/iv_share"
+                android:textColor="@color/blue"
+                android:text="@string/share"
+                android:layout_marginTop="10dp"
+                android:layout_centerHorizontal="true"/>
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/rl_notify"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:padding="20dp"
+            android:background="?attr/selectableItemBackground">
+
+            <ImageView
+                android:id="@+id/iv_notify"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_notify_action"
+                android:layout_centerHorizontal="true"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/iv_notify"
+                android:textColor="@color/blue"
+                android:text="@string/notify"
+                android:layout_marginTop="10dp"
+                android:layout_centerHorizontal="true"/>
+
+        </RelativeLayout>
 
     </LinearLayout>
+
+
 
 </RelativeLayout>

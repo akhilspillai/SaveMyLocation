@@ -15,4 +15,8 @@ public class Constants {
             ".RESULT_DATA_KEY";
     public static final String LOCATION_DATA_EXTRA = PACKAGE_NAME +
             ".LOCATION_DATA_EXTRA";
+    public static final String DATABASE = PACKAGE_NAME +
+            ".location.db";
+    public static final String DO_NOT_NOTIFY = "do_not_notify";
+    public static final String NOTIFY = "notify";
 }

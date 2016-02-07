@@ -4,10 +4,13 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.PersistableBundle;
 import android.os.ResultReceiver;
@@ -15,6 +18,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -27,6 +31,7 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -36,10 +41,17 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.trace.save_my_location.R;
+import com.trace.save_my_location.database.LocalDB;
+import com.trace.save_my_location.fragments.ProgressDialogFragment;
 import com.trace.save_my_location.services.FetchAddressIntentService;
 import com.trace.save_my_location.utils.Constants;
 import com.trace.save_my_location.utils.Utils;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Calendar;
 
 import butterknife.Bind;
@@ -63,26 +75,25 @@ public class MainActivity extends AppCompatActivity
     TextView txtAddressDisplay;
     @Bind(R.id.sliding_panel)
     SlidingUpPanelLayout slidingPanel;
-    @Bind(R.id.txt_name)
-    TextView txtName;
     @Bind(R.id.txt_address)
     TextView txtAddress;
-    @Bind(R.id.btn_save)
-    Button btnSave;
-    @Bind(R.id.btn_cancel)
-    Button btnCancel;
 
     private GoogleMap map;
     private LocationManager locationManager;
     private Location location;
     private String addressOutput;
     private AddressResultReceiver resultReceiver = new AddressResultReceiver(new Handler());
+    private boolean isPanelOpen = false;
+
+    private ProgressDialogFragment dialog;
 
     private static final int LOCATION_REFRESH_TIME = 0,
             LOCATION_REFRESH_DISTANCE = 0,
             LOCATION_PERMISSION_REQ_CODE = 1000;
     private static final String LOCATION_DATA_EXTRA = "location_data",
-            MAP_TAG = "map_tag";
+            MAP_TAG = "map_tag",
+            PANEL_STATE = "panel_state",
+            ADDRESS = "address";
 
     private final LocationListener fineLocationListener = new LocationListener() {
         @Override
@@ -158,6 +169,22 @@ public class MainActivity extends AppCompatActivity
 
         navigationView.setNavigationItemSelectedListener(this);
 
+        slidingPanel.setPanelSlideListener(new SlidingUpPanelLayout.SimplePanelSlideListener() {
+
+            @Override
+            public void onPanelCollapsed(View panel) {
+                isPanelOpen = false;
+            }
+
+            @Override
+            public void onPanelExpanded(View panel) {
+                isPanelOpen = true;
+            }
+        });
+        if (isPanelOpen) {
+            slidingPanel.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+        }
+
         setUpMap(savedInstanceState);
     }
 
@@ -187,6 +214,10 @@ public class MainActivity extends AppCompatActivity
                     .commit();
         } else {
             location = savedInstaneState.getParcelable(LOCATION_DATA_EXTRA);
+            isPanelOpen = savedInstaneState.getBoolean(PANEL_STATE);
+            addressOutput = savedInstaneState.getString(ADDRESS);
+            txtAddressDisplay.setText(addressOutput);
+            txtAddress.setText(addressOutput);
             supportMapFragment = (SupportMapFragment)getSupportFragmentManager()
                     .findFragmentByTag(MAP_TAG);
         }
@@ -292,7 +323,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void startIntentService() {
-        txtAddressDisplay.setText("Fetching address...");
+        txtAddressDisplay.setText(R.string.fetching_address);
+        txtAddress.setText(R.string.fetching_address);
         Intent intent = new Intent(this, FetchAddressIntentService.class);
         intent.putExtra(Constants.RECEIVER, resultReceiver);
         intent.putExtra(Constants.LOCATION_DATA_EXTRA, location);
@@ -328,6 +360,8 @@ public class MainActivity extends AppCompatActivity
     public void onBackPressed() {
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
+        } else if (isPanelOpen) {
+            slidingPanel.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
         } else {
             super.onBackPressed();
         }
@@ -379,10 +413,79 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    @SuppressWarnings("unused")
+    @OnClick(R.id.rl_save)
+    void onSaveClicked(View view) {
+        dialog = ProgressDialogFragment.getInstance("Saving location. Please wait...");
+        dialog.show(getSupportFragmentManager(), "progress");
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+
+                captureScreen(new LocalDB(MainActivity.this).insert(addressOutput,
+                        location.getLongitude(),
+                        location.getLongitude(),
+                        Constants.DO_NOT_NOTIFY));
+                return null;
+            }
+        }.execute();
+    }
+
+    public void captureScreen(final long columnId) {
+        GoogleMap.SnapshotReadyCallback callback = new GoogleMap.SnapshotReadyCallback() {
+            @Override
+            public void onSnapshotReady(Bitmap snapshot) {
+                OutputStream fout = null;
+                boolean success = false;
+                File folder = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+                if (folder != null) {
+                    try {
+                        fout = new FileOutputStream(new File(folder,String.valueOf(columnId)));
+                        snapshot.compress(Bitmap.CompressFormat.JPEG, 90, fout);
+                        success = true;
+                    } catch (FileNotFoundException e) {
+                        Utils.log("Exception writing to file");
+                    } finally {
+                        if (fout != null) {
+                            try {
+                                fout.flush();
+                                fout.close();
+                            } catch (IOException e) {
+                                Utils.log("Unable to close file output");
+                            }
+                        }
+                    }
+                }
+                dialog.dismiss();
+                if (success) {
+                    Toast.makeText(MainActivity.this, "Location saved", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "Unable to save location", Toast.LENGTH_SHORT).show();
+                }
+            }
+        };
+
+        map.snapshot(callback);
+    }
+
+    @SuppressWarnings("unused")
+    @OnClick(R.id.rl_share)
+    void onShareClicked(View view) {
+
+    }
+
+    @SuppressWarnings("unused")
+    @OnClick(R.id.rl_notify)
+    void onNotifyClicked(View view) {
+
+    }
+
     @Override
-    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
-        super.onSaveInstanceState(outState, outPersistentState);
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
         outState.putParcelable(LOCATION_DATA_EXTRA, location);
+        outState.putBoolean(PANEL_STATE, isPanelOpen);
+        outState.putString(ADDRESS, addressOutput);
     }
 
     @SuppressLint("ParcelCreator")
@@ -395,6 +498,7 @@ public class MainActivity extends AppCompatActivity
         protected void onReceiveResult(int resultCode, Bundle resultData) {
             addressOutput = resultData.getString(Constants.RESULT_DATA_KEY);
             txtAddressDisplay.setText(addressOutput);
+            txtAddress.setText(addressOutput);
         }
 
     }

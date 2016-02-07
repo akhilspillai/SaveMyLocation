@@ -9,6 +9,10 @@
 
     <string name="name_label">Name</string>
     <string name="address_label">Address</string>
+    <string name="no_address">No address found</string>
+    <string name="fetching_address">Fetching address</string>
     <string name="save">Save</string>
+    <string name="share">Share</string>
+    <string name="notify">Notify</string>
     <string name="cancel">Cancel</string>
 </resources>
