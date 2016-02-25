@@ -39,17 +39,19 @@ public class LocalDB {
         values.put(SQLiteHelper.COLUMN_ADDRESS, address);
         values.put(SQLiteHelper.COLUMN_LONGITUDE, longitude);
         values.put(SQLiteHelper.COLUMN_LATITUDE, latitude);
+        values.put(SQLiteHelper.COLUMN_TIME, System.currentTimeMillis());
         values.put(SQLiteHelper.COLUMN_NOTIFICATION, notification);
-        long colmnId = database.insert(SQLiteHelper.TABLE_LOCATION, null, values);
+        long columnId = database.insert(SQLiteHelper.TABLE_LOCATION, null, values);
         close();
-        return colmnId;
+        return columnId;
     }
 
-    public void updateNotification(String notification) {
+    public void updateNotification(long id, String notification) {
         SQLiteDatabase database = open();
         ContentValues args = new ContentValues();
         args.put(SQLiteHelper.COLUMN_NOTIFICATION, notification);
-        database.update(SQLiteHelper.TABLE_LOCATION, args, null, null);
+        database.update(SQLiteHelper.TABLE_LOCATION, args,
+                "_id = ?", new String[]{String.valueOf(id)});
         close();
     }
 
@@ -62,6 +64,7 @@ public class LocalDB {
         if (cursor.moveToFirst()) {
             do {
                 locationModel = new LocationModel();
+                locationModel.setId(cursor.getLong(0));
                 locationModel.setAddress(cursor.getString(1));
                 locationModel.setLongitude(cursor.getDouble(2));
                 locationModel.setLatitude(cursor.getDouble(3));
@@ -72,6 +75,24 @@ public class LocalDB {
         cursor.close();
         close();
         return locationModels;
+    }
+
+    public LocationModel retrieveSavedLocation(long id) {
+        LocationModel locationModel = null;
+        SQLiteDatabase database = open();
+        Cursor cursor = database.query(SQLiteHelper.TABLE_LOCATION, COLUMNS_LOCATION,
+                "_id = ?", new String[]{String.valueOf(id)}, null, null, null, null);
+        if (cursor.moveToFirst()) {
+            locationModel = new LocationModel();
+            locationModel.setId(cursor.getLong(0));
+            locationModel.setAddress(cursor.getString(1));
+            locationModel.setLongitude(cursor.getDouble(2));
+            locationModel.setLatitude(cursor.getDouble(3));
+            locationModel.setNotification(cursor.getString(4));
+        }
+        cursor.close();
+        close();
+        return locationModel;
     }
 
 }

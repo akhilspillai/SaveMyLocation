@@ -7,8 +7,7 @@
     android:layout_height="match_parent"
     android:gravity="bottom"
     app:umanoPanelHeight="0dp"
-    app:umanoShadowHeight="4dp"
-    app:umanoDragView="@id/rl_address_holder">
+    app:umanoShadowHeight="4dp">
 
     <include layout="@layout/main_content"
         android:layout_width="match_parent"

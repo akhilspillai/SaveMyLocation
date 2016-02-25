@@ -3,6 +3,8 @@
     package="com.trace.save_my_location">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="18"/>
 
     <application
         android:allowBackup="true"
@@ -10,6 +12,10 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
+        <meta-data android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
@@ -17,6 +23,7 @@
         <activity
             android:name=".screens.MainActivity"
             android:label="@string/my_location"
+            android:launchMode="singleTask"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,6 +34,9 @@
 
         <service
             android:name=".services.FetchAddressIntentService"
+            android:exported="false"/>
+
+        <service android:name=".services.GeoFenceTransitionsIntentService"
             android:exported="false"/>
     </application>
 

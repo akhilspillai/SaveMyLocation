@@ -16,7 +16,7 @@ public class ProgressDialogFragment extends DialogFragment {
 
     private static final String MESSAGE = "message";
 
-    public static ProgressDialogFragment getInstance(String message) {
+    public static ProgressDialogFragment newInstance(String message) {
         ProgressDialogFragment fragment = new ProgressDialogFragment();
         Bundle bundle = new Bundle();
         bundle.putString(MESSAGE, message);

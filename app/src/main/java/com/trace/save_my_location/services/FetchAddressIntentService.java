@@ -47,7 +47,6 @@ public class FetchAddressIntentService extends IntentService {
         }
 
         if (addresses == null || addresses.size()  == 0) {
-            Utils.log("No address found");
             deliverResultToReceiver(Constants.FAILURE_RESULT, "No address found");
         } else {
             Address address = addresses.get(0);

@@ -14,5 +14,15 @@
     <string name="save">Save</string>
     <string name="share">Share</string>
     <string name="notify">Notify</string>
+    <string name="do_not_notify">Do Not Notify</string>
+    <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
+
+    <string name="map">Map</string>
+    <string name="saved">Saved Locations</string>
+    <string name="no_locations_saved">No saved locations available</string>
+    <string name="location_notification">Location Notification</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

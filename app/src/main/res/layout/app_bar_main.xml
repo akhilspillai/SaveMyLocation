@@ -21,8 +21,8 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include
-        layout="@layout/slide_up_layout"
+    <FrameLayout
+        android:id="@+id/frag_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />

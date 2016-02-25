@@ -4,11 +4,14 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
 
-    <color name="bg_transparent_black">#0D000000</color>
+    <color name="bg_transparent_black">#5D000000</color>
     <color name="text_color_dark">@android:color/black</color>
     <color name="text_color_grey">@android:color/darker_gray</color>
 
     <color name="green">#16ac4d</color>
     <color name="red">#b60202</color>
     <color name="blue">#284BCD</color>
+
+    <color name="notification_title">#363636</color>
+    <color name="notification_subtitle">#7C7C7C</color>
 </resources>

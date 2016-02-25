@@ -14,11 +14,13 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     public static final String COLUMN_LONGITUDE = "longitude";
     public static final String COLUMN_LATITUDE = "latitude";
     public static final String COLUMN_NOTIFICATION = "notification";
+    public static final String COLUMN_TIME = "time";
     private static final String LOCATION_TABLE_CREATE = "create table "
             + TABLE_LOCATION + "( " + ROW_ID + " integer primary key,"
             + COLUMN_ADDRESS + " text,"
             + COLUMN_LATITUDE + " real,"
             + COLUMN_LONGITUDE + " real,"
+            + COLUMN_TIME + " integer,"
             + COLUMN_NOTIFICATION + " text);";
 
     private static final int DATABASE_VERSION = 1;
