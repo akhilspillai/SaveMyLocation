@@ -1,7 +1,6 @@
 package com.trace.save_my_location.adapters;
 
 import android.os.Environment;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -12,6 +11,7 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 import com.trace.save_my_location.R;
+import com.trace.save_my_location.fragments.SavedLocationsFragment;
 import com.trace.save_my_location.fragments.ShowLocationFragment;
 import com.trace.save_my_location.models.LocationModel;
 import com.trace.save_my_location.utils.Constants;
@@ -33,7 +33,7 @@ import butterknife.OnClick;
 public class SavedLocationsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private List<LocationModel> savedLocationList;
-    private Fragment fragment;
+    private SavedLocationsFragment fragment;
 
     public class LocationViewHolder extends RecyclerView.ViewHolder {
 
@@ -41,6 +41,9 @@ public class SavedLocationsAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         ImageView ivMap;
         @Bind(R.id.txt_address)
         TextView txtAddress;
+        /*@Bind(R.id.btn_notify)
+        Button btnNotify;*/
+
         public LocationViewHolder(View v) {
             super(v);
             ButterKnife.bind(this, v);
@@ -70,20 +73,26 @@ public class SavedLocationsAdapter extends RecyclerView.Adapter<RecyclerView.Vie
                     locationModel.getLatitude(), locationModel.getLongitude());
         }
 
-        @SuppressWarnings("unused")
+        /*@SuppressWarnings("unused")
         @OnClick(R.id.btn_notify)
         void onNotifyClicked() {
-
-        }
+            LocationModel locationModel = savedLocationList.get(getAdapterPosition());
+            if (locationModel.getNotification().equals(Constants.DO_NOT_NOTIFY)) {
+                fragment.sendGeoFenceActivateRequest(locationModel);
+            } else {
+                fragment.sendGeoFenceRemoveRequest(locationModel);
+            }
+        }*/
 
         @SuppressWarnings("unused")
         @OnClick(R.id.btn_delete)
         void onDeleteClicked() {
-
+            fragment.deleteLocation(savedLocationList.get(getAdapterPosition()));
         }
     }
 
-    public SavedLocationsAdapter(List<LocationModel> savedLocations, Fragment fragment) {
+    public SavedLocationsAdapter(List<LocationModel> savedLocations,
+                                 SavedLocationsFragment fragment) {
         this.savedLocationList = savedLocations;
         this.fragment = fragment;
     }
@@ -103,6 +112,12 @@ public class SavedLocationsAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         File folder = new File(
                 fragment.getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES),
                 Constants.MAP_IMAGES_FOLDER);
+
+        /*if (locationModel.getNotification().equals(Constants.NOTIFY)) {
+            locationViewHolder.btnNotify.setText(R.string.do_not_notify);
+        } else {
+            locationViewHolder.btnNotify.setText(R.string.notify);
+        }*/
 
         Picasso.with(fragment.getActivity())
                 .load(new File(folder, locationModel.getId()+".jpg"))

@@ -95,4 +95,12 @@ public class LocalDB {
         return locationModel;
     }
 
+    public void deleteLocation(long id) {
+        LocationModel locationModel = null;
+        SQLiteDatabase database = open();
+        database.delete(SQLiteHelper.TABLE_LOCATION,
+                "_id = ?", new String[]{String.valueOf(id)});
+        close();
+    }
+
 }

@@ -1,6 +1,5 @@
 package com.trace.save_my_location.fragments;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
@@ -17,7 +16,6 @@ import android.os.ResultReceiver;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,6 +35,7 @@ import com.trace.save_my_location.database.LocalDB;
 import com.trace.save_my_location.screens.MainActivity;
 import com.trace.save_my_location.services.FetchAddressIntentService;
 import com.trace.save_my_location.utils.Constants;
+import com.trace.save_my_location.utils.GeoFenceRequester;
 import com.trace.save_my_location.utils.OnBackPressedListener;
 import com.trace.save_my_location.utils.Utils;
 
@@ -59,7 +58,8 @@ import butterknife.OnClick;
 public class MapDisplayFragment extends MainFragment
         implements OnMapReadyCallback,
         GoogleMap.OnCameraChangeListener,
-        OnBackPressedListener {
+        OnBackPressedListener,
+        GeoFenceRequester.GeoFenceResultCallback {
 
     @Bind(R.id.rl_fabs)
     RelativeLayout rlFabs;
@@ -71,12 +71,15 @@ public class MapDisplayFragment extends MainFragment
     TextView txtAddress;
 
 
+    private ProgressDialogFragment dialog;
     private GoogleMap map;
     private LocationManager locationManager;
     private Location location;
     private String addressOutput;
     private AddressResultReceiver resultReceiver = new AddressResultReceiver(new Handler());
     private boolean isPanelOpen = false;
+
+    private GeoFenceRequester requester;
 
     private static final String LOCATION_DATA_EXTRA = "location_data",
             PANEL_STATE = "panel_state",
@@ -156,7 +159,8 @@ public class MapDisplayFragment extends MainFragment
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(
+            LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_map, container, false);
         ButterKnife.bind(this, view);
         return view;
@@ -222,7 +226,8 @@ public class MapDisplayFragment extends MainFragment
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
 
-        if (location == null) {
+        if (location == null ||
+                (Math.round(location.getLatitude()) == 0 && Math.round(location.getLongitude()) == 0)) {
             LatLng center = new LatLng(0, 0);
             map.moveCamera(CameraUpdateFactory.newLatLng(center));
         } else {
@@ -284,32 +289,19 @@ public class MapDisplayFragment extends MainFragment
         }
     }
 
-    public boolean checkForLocationPermission(int requestId) {
-        if (Utils.isMarshMellowOrAbove()) {
-            if (getActivity().checkSelfPermission(
-                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(getActivity(),
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        requestId);
-                return false;
-            }
-        }
-        return true;
-    }
-
     @Override
-    public void onPermissionRequestReturn(int requestCode, @NonNull String[] permissions,
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             if (requestCode == Constants.LOCATION_PERMISSION_REQ_CODE) {
                 findUserLocation();
             } else if (requestCode == Constants.GEOFENCING_PERMISSION_REQ_CODE) {
-                sendGeoFencingRequest();
+                requester.sendGeoFencingActivateRequest();
             }
         } else {
-            Snackbar.make(rlFabs, "The permission is required to find your location.", Snackbar.LENGTH_LONG)
+            Snackbar.make(rlFabs,
+                    "The permission is required to find your location.", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
         }
     }
@@ -390,7 +382,7 @@ public class MapDisplayFragment extends MainFragment
                                     .insert(addressOutput,
                                             location.getLongitude(),
                                             location.getLatitude(),
-                                            shouldNotify ? Constants.NOTIFY : Constants.DO_NOT_NOTIFY),
+                                            Constants.DO_NOT_NOTIFY),
                             shouldNotify);
                     return null;
                 }
@@ -444,7 +436,30 @@ public class MapDisplayFragment extends MainFragment
         };
 
         map.snapshot(callback);
-        formGeoFenceRequest(columnId, location.getLatitude(), location.getLongitude());
+        if (shouldNotify) {
+            requester = new GeoFenceRequester(getActivity(), this);
+            requester.formGeoFenceActivateRequest(columnId, location.getLatitude(), location.getLongitude());
+        }
+    }
+
+    @Override
+    public void onGeoFenceNotifyRequestReturn(long id, boolean success) {
+        dialog.dismiss();
+        if (success) {
+            new LocalDB(getActivity()).updateNotification(id, Constants.NOTIFY);
+            Toast.makeText(getActivity(), "Location saved", Toast.LENGTH_SHORT)
+                    .show();
+        } else {
+            Toast.makeText(getActivity(),
+                    "Unable to set notification. Please try again later",
+                    Toast.LENGTH_SHORT)
+                    .show();
+        }
+    }
+
+    @Override
+    public void onGeoFenceRemoveRequestReturn(long requestId, boolean success) {
+
     }
 
     @SuppressWarnings("unused")
@@ -459,11 +474,11 @@ public class MapDisplayFragment extends MainFragment
         }
     }
 
-    @SuppressWarnings("unused")
+    /*@SuppressWarnings("unused")
     @OnClick(R.id.rl_notify)
     void onNotifyClicked(View view) {
         saveLocation(true);
-    }
+    }*/
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
